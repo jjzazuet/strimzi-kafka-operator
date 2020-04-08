@@ -11,7 +11,6 @@ import io.strimzi.api.kafka.KafkaUserList;
 import io.strimzi.api.kafka.model.DoneableKafkaUser;
 import io.strimzi.api.kafka.model.KafkaUser;
 import io.strimzi.api.kafka.model.KafkaUserBuilder;
-import io.strimzi.api.kafka.model.KafkaUserQuotas;
 import io.strimzi.api.kafka.model.status.KafkaUserStatus;
 import io.strimzi.certs.CertManager;
 import io.strimzi.operator.cluster.model.StatusDiff;
@@ -21,7 +20,6 @@ import io.strimzi.operator.common.Reconciliation;
 import io.strimzi.operator.common.model.Labels;
 import io.strimzi.operator.common.model.NamespaceAndName;
 import io.strimzi.operator.common.operator.resource.CrdOperator;
-import io.strimzi.operator.common.operator.resource.ReconcileResult;
 import io.strimzi.operator.common.operator.resource.SecretOperator;
 import io.strimzi.operator.common.operator.resource.StatusUtils;
 import io.strimzi.operator.user.model.KafkaUserModel;
@@ -101,11 +99,11 @@ public class KafkaUserOperator extends AbstractOperator<KafkaUser,
         return CompositeFuture.join(super.allResourceNames(namespace),
                 invokeAsync(aclOperations::getUsersWithAcls)
         ).map(compositeFuture -> {
-                    Set<NamespaceAndName> names = compositeFuture.resultAt(0);
-                    names.addAll(toResourceRef(namespace, compositeFuture.resultAt(1)));
-                    names.addAll(toResourceRef(namespace, compositeFuture.resultAt(2)));
-                    return names;
-                });
+            Set<NamespaceAndName> names = compositeFuture.resultAt(0);
+            names.addAll(toResourceRef(namespace, compositeFuture.resultAt(1)));
+            names.addAll(toResourceRef(namespace, compositeFuture.resultAt(2)));
+            return names;
+        });
     }
 
     List<NamespaceAndName> toResourceRef(String namespace, Collection<String> names) {

@@ -36,8 +36,6 @@ import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.CountDownLatch;
 
-import static java.util.Arrays.asList;
-import static java.util.Collections.singletonList;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -668,7 +666,7 @@ public class KafkaUserOperatorTest {
 //                async.countDown();
 //                return Future.succeededFuture(Boolean.TRUE);
 //            }
-        };
+    };
 
         // Now try to reconcile all the Kafka Connect clusters
 //        op.reconcileAll("test", ResourceUtils.NAMESPACE, ignored -> { });
