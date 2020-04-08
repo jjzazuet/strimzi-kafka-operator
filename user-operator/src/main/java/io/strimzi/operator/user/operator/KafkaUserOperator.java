@@ -56,7 +56,6 @@ public class KafkaUserOperator extends AbstractOperator<KafkaUser,
     private final String caCertName;
     private final String caKeyName;
     private final String caNamespace;
-    private final ScramShaCredentialsOperator scramShaCredentialOperator;
     private final Optional<LabelSelector> selector;
     private final KafkaUserQuotasOperator kafkaUserQuotasOperator;
     private PasswordGenerator passwordGenerator = new PasswordGenerator(12);
@@ -67,7 +66,6 @@ public class KafkaUserOperator extends AbstractOperator<KafkaUser,
      * @param crdOperator For operating on Custom Resources.
      * @param labels A selector for which users in the namespace to consider as the operators
      * @param secretOperations For operating on Secrets.
-     * @param scramShaCredentialOperator For operating on SCRAM SHA credentials.
      * @param kafkaUserQuotasOperator For operating on Kafka User quotas.
      * @param aclOperations For operating on ACLs.
      * @param caCertName The name of the Secret containing the clients CA certificate.
@@ -79,7 +77,6 @@ public class KafkaUserOperator extends AbstractOperator<KafkaUser,
                              CrdOperator<KubernetesClient, KafkaUser, KafkaUserList, DoneableKafkaUser> crdOperator,
                              Labels labels,
                              SecretOperator secretOperations,
-                             ScramShaCredentialsOperator scramShaCredentialOperator,
                              KafkaUserQuotasOperator kafkaUserQuotasOperator,
                              SimpleAclOperator aclOperations, String caCertName, String caKeyName, String caNamespace) {
         super(vertx, "User", crdOperator);
@@ -87,7 +84,6 @@ public class KafkaUserOperator extends AbstractOperator<KafkaUser,
         Map<String, String> matchLabels = labels.toMap();
         this.selector = matchLabels.isEmpty() ? Optional.empty() : Optional.of(new LabelSelector(null, matchLabels));
         this.secretOperations = secretOperations;
-        this.scramShaCredentialOperator = scramShaCredentialOperator;
         this.kafkaUserQuotasOperator = kafkaUserQuotasOperator;
         this.aclOperations = aclOperations;
         this.caCertName = caCertName;
@@ -103,8 +99,8 @@ public class KafkaUserOperator extends AbstractOperator<KafkaUser,
     @Override
     public Future<Set<NamespaceAndName>> allResourceNames(String namespace) {
         return CompositeFuture.join(super.allResourceNames(namespace),
-                invokeAsync(aclOperations::getUsersWithAcls),
-                invokeAsync(scramShaCredentialOperator::list)).map(compositeFuture -> {
+                invokeAsync(aclOperations::getUsersWithAcls)
+        ).map(compositeFuture -> {
                     Set<NamespaceAndName> names = compositeFuture.resultAt(0);
                     names.addAll(toResourceRef(namespace, compositeFuture.resultAt(1)));
                     names.addAll(toResourceRef(namespace, compositeFuture.resultAt(2)));
@@ -171,28 +167,16 @@ public class KafkaUserOperator extends AbstractOperator<KafkaUser,
 
         Set<SimpleAclRule> tlsAcls = null;
         Set<SimpleAclRule> scramOrNoneAcls = null;
-        KafkaUserQuotas tlsQuotas = null;
-        KafkaUserQuotas scramOrNoneQuotas = null;
 
         if (user.isTlsUser())   {
             tlsAcls = user.getSimpleAclRules();
-            tlsQuotas = user.getQuotas();
         } else if (user.isScramUser() || user.isNoneUser())  {
             scramOrNoneAcls = user.getSimpleAclRules();
-            scramOrNoneQuotas = user.getQuotas();
         }
-
-        // Create the effectively final variables to use in lambda
-        KafkaUserQuotas finalScramOrNoneQuotas = scramOrNoneQuotas;
-        KafkaUserQuotas finalTlsQuotas = tlsQuotas;
 
         // Reconciliation of Quotas and of SCRAM-SHA credentials changes the same fields and cannot be done in parallel
         // because they would overwrite each other's data!
         CompositeFuture.join(
-                scramShaCredentialOperator.reconcile(user.getName(), password)
-                        .compose(ignore -> CompositeFuture.join(kafkaUserQuotasOperator.reconcile(KafkaUserModel.getTlsUserName(userName), finalTlsQuotas),
-                                kafkaUserQuotasOperator.reconcile(KafkaUserModel.getScramUserName(userName), finalScramOrNoneQuotas))),
-                reconcileSecretAndSetStatus(namespace, user, desired, userStatus),
                 aclOperations.reconcile(KafkaUserModel.getTlsUserName(userName), tlsAcls),
                 aclOperations.reconcile(KafkaUserModel.getScramUserName(userName), scramOrNoneAcls))
                 .setHandler(reconciliationResult -> {
@@ -213,15 +197,6 @@ public class KafkaUserOperator extends AbstractOperator<KafkaUser,
                     });
                 });
         return handler.future();
-    }
-
-    protected Future<ReconcileResult<Secret>> reconcileSecretAndSetStatus(String namespace, KafkaUserModel user, Secret desired, KafkaUserStatus userStatus) {
-        return secretOperations.reconcile(namespace, user.getSecretName(), desired).compose(ar -> {
-            if (desired != null) {
-                userStatus.setSecret(desired.getMetadata().getName());
-            }
-            return Future.succeededFuture(ar);
-        });
     }
 
     /**
@@ -294,9 +269,8 @@ public class KafkaUserOperator extends AbstractOperator<KafkaUser,
                 aclOperations.reconcile(KafkaUserModel.getTlsUserName(user), null),
                 aclOperations.reconcile(KafkaUserModel.getScramUserName(user), null),
                 kafkaUserQuotasOperator.reconcile(KafkaUserModel.getTlsUserName(user), null),
-                kafkaUserQuotasOperator.reconcile(KafkaUserModel.getScramUserName(user), null),
-                scramShaCredentialOperator.reconcile(KafkaUserModel.getScramUserName(user), null))
-            .map(Boolean.TRUE);
+                kafkaUserQuotasOperator.reconcile(KafkaUserModel.getScramUserName(user), null)
+        ).map(Boolean.TRUE);
     }
 
 }

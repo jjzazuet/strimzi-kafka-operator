@@ -41,23 +41,23 @@ spec:
           value: strimzi/kafka:0.17.0-kafka-2.4.0
         - name: STRIMZI_KAFKA_IMAGES
           value: |
-            2.3.1=strimzi/kafka:0.17.0-kafka-2.3.1
-            2.4.0=strimzi/kafka:0.17.0-kafka-2.4.0
+            2.3.1=jjzazuet/kafka:0.17.0-kafka-2.3.1
+            2.4.0=jjzazuet/kafka:0.17.0-kafka-2.4.0
         - name: STRIMZI_KAFKA_CONNECT_IMAGES
           value: |
-            2.3.1=strimzi/kafka:0.17.0-kafka-2.3.1
-            2.4.0=strimzi/kafka:0.17.0-kafka-2.4.0
+            2.3.1=jjzazuet/kafka:0.17.0-kafka-2.3.1
+            2.4.0=jjzazuet/kafka:0.17.0-kafka-2.4.0
         - name: STRIMZI_KAFKA_CONNECT_S2I_IMAGES
           value: |
-            2.3.1=strimzi/kafka:0.17.0-kafka-2.3.1
-            2.4.0=strimzi/kafka:0.17.0-kafka-2.4.0
+            2.3.1=jjzazuet/kafka:0.17.0-kafka-2.3.1
+            2.4.0=jjzazuet/kafka:0.17.0-kafka-2.4.0
         - name: STRIMZI_KAFKA_MIRROR_MAKER_IMAGES
           value: |
-            2.3.1=strimzi/kafka:0.17.0-kafka-2.3.1
-            2.4.0=strimzi/kafka:0.17.0-kafka-2.4.0
+            2.3.1=jjzazuet/kafka:0.17.0-kafka-2.3.1
+            2.4.0=jjzazuet/kafka:0.17.0-kafka-2.4.0
         - name: STRIMZI_KAFKA_MIRROR_MAKER_2_IMAGES
           value: |
-            2.4.0=strimzi/kafka:0.17.0-kafka-2.4.0
+            2.4.0=jjzazuet/kafka:0.17.0-kafka-2.4.0
         - name: STRIMZI_DEFAULT_TOPIC_OPERATOR_IMAGE
           value: "strimzi/operator:0.17.0"
         - name: STRIMZI_DEFAULT_USER_OPERATOR_IMAGE

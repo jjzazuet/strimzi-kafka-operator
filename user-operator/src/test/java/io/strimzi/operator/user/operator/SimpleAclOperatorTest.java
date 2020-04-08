@@ -104,7 +104,11 @@ public class SimpleAclOperatorTest {
 
         ArgumentCaptor<scala.collection.immutable.Set<Acl>> aclCaptor = ArgumentCaptor.forClass(scala.collection.immutable.Set.class);
         ArgumentCaptor<Resource> resourceCaptor = ArgumentCaptor.forClass(Resource.class);
-        doNothing().when(mockAuthorizer).addAcls(aclCaptor.capture(), resourceCaptor.capture());
+
+        scala.collection.immutable.Set<Acl> captureAcls = aclCaptor.capture();
+        Resource r = resourceCaptor.capture();
+
+        mockAuthorizer.addAcls(captureAcls, r);
 
         SimpleAclRuleResource resource1 = new SimpleAclRuleResource("my-topic", SimpleAclRuleResourceType.CLUSTER, AclResourcePatternType.LITERAL);
         SimpleAclRuleResource resource = new SimpleAclRuleResource("my-topic", SimpleAclRuleResourceType.TOPIC, AclResourcePatternType.LITERAL);

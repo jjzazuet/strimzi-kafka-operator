@@ -17,7 +17,6 @@ import io.strimzi.operator.common.operator.resource.SecretOperator;
 import io.strimzi.operator.user.operator.KafkaUserOperator;
 import io.strimzi.operator.user.operator.KafkaUserQuotasOperator;
 import io.strimzi.operator.user.operator.ScramShaCredentials;
-import io.strimzi.operator.user.operator.ScramShaCredentialsOperator;
 import io.strimzi.operator.user.operator.SimpleAclOperator;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
@@ -77,13 +76,13 @@ public class Main {
         CrdOperator<KubernetesClient, KafkaUser, KafkaUserList, DoneableKafkaUser> crdOperations = new CrdOperator<>(vertx, client, KafkaUser.class, KafkaUserList.class, DoneableKafkaUser.class);
         SimpleAclOperator aclOperations = new SimpleAclOperator(vertx, authorizer);
         ScramShaCredentials scramShaCredentials = new ScramShaCredentials(config.getZookeperConnect(), (int) config.getZookeeperSessionTimeoutMs());
-        ScramShaCredentialsOperator scramShaCredentialsOperator = new ScramShaCredentialsOperator(vertx, scramShaCredentials);
         KafkaUserQuotasOperator quotasOperator = new KafkaUserQuotasOperator(vertx, config.getZookeperConnect(), (int) config.getZookeeperSessionTimeoutMs());
 
         KafkaUserOperator kafkaUserOperations = new KafkaUserOperator(vertx,
-                certManager, crdOperations,
-                config.getLabels(),
-                secretOperations, scramShaCredentialsOperator, quotasOperator, aclOperations, config.getCaCertSecretName(), config.getCaKeySecretName(), config.getCaNamespace());
+            certManager, crdOperations,
+            config.getLabels(),
+            secretOperations, quotasOperator, aclOperations,
+            config.getCaCertSecretName(), config.getCaKeySecretName(), config.getCaNamespace());
 
         Promise<String> promise = Promise.promise();
         UserOperator operator = new UserOperator(config.getNamespace(),
